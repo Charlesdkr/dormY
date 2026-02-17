@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Rooms | dormY{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="page-title">Room Directory</h2>
+    <div class="row">
+        {% for room in rooms %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="dashboard-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title fw-bold mb-0">Room {{ room.room_number }}</h5>
+                    <span class="badge 
+                        {% if room.status == 'full' %}bg-danger
+                        {% elif room.status == 'maintenance' %}bg-warning
+                        {% else %}bg-success{% endif %}">
+                        {{ room.get_status_display }}
+                    </span>
+                </div>
+                <h6 class="card-subtitle mb-2 text-muted">{{ room.get_floor_display }} | {{ room.room_occupants.count }}/{{ room.capacity }} Occupants</h6>
+                <ul class="list-group list-group-flush">
+                    {% for occupant in room.room_occupants.all %}
+                        <li class="list-group-item">{{ occupant.student.full_name }}</li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">No occupants yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">No rooms found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

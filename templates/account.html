@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Details | dormY{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="page-title">My Account</h2>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="dashboard-card mb-4">
+                <h5 class="card-title fw-bold mb-4"><i class="fas fa-user-circle me-2"></i>Your Information</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p><strong>Student ID:</strong> {{ user.student_id }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p><strong>Full Name:</strong> {{ user.full_name }}</p>
+                    </div>
+                </div>
+                <p><strong>Email Address:</strong> {{ user.email }}</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Course:</strong> {{ user.course|default:'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Year Level:</strong> {{ user.year_level|default:'N/A' }}</p>
+                    </div>
+                </div>
+                <p><strong>Contact Number:</strong> {{ user.contact_number|default:'N/A' }}</p>
+            </div>
+
+            <div class="dashboard-card">
+                <h5 class="card-title fw-bold mb-4"><i class="fas fa-key me-2"></i>Change Password</h5>
+                <form method="post" action="{% url 'account' %}">
+                    {% csrf_token %}
+                    {{ password_form.as_p }}
+                    <button type="submit" name="change_password" class="btn btn-primary">Change Password</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="dashboard-card">
+                <h5 class="card-title fw-bold mb-4"><i class="fas fa-info-circle me-2"></i>Account Overview</h5>
+                <p><strong>Student ID:</strong> {{ user.student_id }}</p>
+                <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+                <p><strong>Payment Status:</strong> <span class="fw-bold 
+                    {% if user.payment_status == 'fully_paid' %}text-success
+                    {% elif user.payment_status == 'partially_paid' %}text-warning
+                    {% else %}text-danger{% endif %}">
+                    {{ user.get_payment_status_display }}
+                </span></p>
+                <p><strong>Date Joined:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+            </div>
+
+            <div class="dashboard-card mt-4">
+                <h5 class="card-title fw-bold mb-4"><i class="fas fa-history me-2"></i>Violation History</h5>
+                {% if violations %}
+                    <ul class="list-group list-group-flush">
+                        {% for violation in violations %}
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ violation.type_of_violation }}</h6>
+                                    <small>{{ violation.date_committed|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ violation.description }}</p>
+                                {% if violation.penalty_notes %}
+                                    <small class="text-muted"><strong>Penalty:</strong> {{ violation.penalty_notes }}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No violations recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

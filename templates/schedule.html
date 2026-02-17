@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Schedule | dormY{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <h2 class="page-title">Cleaning Schedule & Announcements</h2>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h5 class="my-0 fw-normal"><i class="fas fa-table me-2"></i>Weekly Cleaning Schedule</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 20%;">Day</th>
+                                    <th style="width: 20%;">Group</th>
+                                    <th>Members</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in all_schedules %}
+                                <tr>
+                                    <td>{{ schedule.get_day_of_week_display }}</td>
+                                    <td>{{ schedule.group.name }}</td>
+                                    <td>
+                                        {% for member in schedule.group.members.all %}
+                                            {{ member.full_name }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            <span class="text-muted">No members assigned.</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No cleaning schedules found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="my-0 fw-normal"><i class="fas fa-bullhorn me-2"></i>UPCOMING</h5>
+                </div>
+                <div class="card-body">
+                    {% for announcement in all_announcements %}
+                        <div class="alert alert-info" role="alert">
+                            <h5 class="alert-heading">{{ announcement.title }}</h5>
+                            <p>{{ announcement.content }}</p>
+                            {% if announcement.event_date %}
+                            <hr>
+                            <p class="mb-0"><strong>Date:</strong> {{ announcement.event_date|date:"F d, Y H:i" }}</p>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p>No announcements found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{# No extra scripts needed for this simplified page #}
+{% endblock %}

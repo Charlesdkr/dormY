@@ -1,138 +1,102 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Dashboard | dormY{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container mt-5">
     <div class="row">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-center mb-4">
-                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                    <i class="fas fa-user fa-2x"></i>
-                </div>
-                <div class="ms-3">
-                    <h2 class="fw-bold mb-0">Welcome, {{ request.user.full_name }}</h2>
-                    <span class="text-muted">Student ID: {{ user.student_id }}</span>
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Welcome Message -->
+            <div class="card mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
+                         class="rounded-circle me-3" 
+                         alt="Profile Picture" 
+                         width="60" 
+                         height="60"
+                         style="object-fit: cover;">
+                    <div>
+                        <h2 class="card-title mb-0">Welcome, {{ user.first_name }}!</h2>
+                        {% if display_room %}
+                            <p class="card-text text-muted">You are assigned to <strong>Room {{ display_room.room_number }}</strong>.</p>
+                        {% else %}
+                            <p class="card-text text-muted">You are not currently assigned to a room.</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mb-4">
+            <!-- Roommates -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-users me-2"></i>Your Roommates
+                </div>
                 <div class="card-body">
-                    <h5 class="fw-bold mb-3"><i class="fas fa-credit-card text-success me-2"></i>Payment Status</h5>
-                    {% if user.payment_status == 'fully_paid' %}
-                        <p class="h4 text-success fw-bold mb-0">
-                            <i class="fas fa-check-circle me-2"></i>Fully Paid
-                        </p>
-                    {% elif user.payment_status == 'partially_paid' %}
-                        <p class="h4 text-warning fw-bold mb-0">
-                            <i class="fas fa-exclamation-circle me-2"></i>Partially Paid
-                        </p>
+                    {% if display_roommates %}
+                        <ul class="list-group list-group-flush">
+                            {% for roommate in display_roommates %}
+                                <li class="list-group-item">{{ roommate.first_name }} {{ roommate.last_name }}</li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
-                        <p class="h4 text-danger fw-bold mb-0">
-                            <i class="fas fa-times-circle me-2"></i>Not Paid
-                        </p>
+                        <p class="card-text">You have no roommates at the moment.</p>
                     {% endif %}
                 </div>
             </div>
-
-            {% if display_room %}
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            <div class="col-md-4 bg-success text-white d-flex flex-column align-items-center justify-content-center py-4">
-                                <h1 class="display-4 fw-bold mb-0">{{ display_room.room_number }}</h1>
-                                <span>ROOM NUMBER</span>
-                            </div>
-                            <div class="col-md-8 p-4 bg-white">
-                                <div class="row">
-                                    <div class="col-6 mb-3">
-                                        <small class="text-uppercase text-muted fw-bold">Floor</small>
-                                        <p class="h5 mb-0">{{ display_room.get_floor_display }}</p>
-                                    </div>
-                                    <div class="col-6 mb-3">
-                                        <small class="text-uppercase text-muted fw-bold">Capacity</small>
-                                        <p class="h5 mb-0">{{ display_room.capacity }} Persons</p>
-                                    </div>
-                                    <div class="col-12">
-                                        <small class="text-uppercase text-muted fw-bold">Status</small>
-                                        <p class="mb-0 text-success"><i class="fas fa-check-circle me-1"></i> Currently Assigned</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h5 class="fw-bold mb-3"><i class="fas fa-users me-2 text-success"></i>My Roommates</h5>
-                <div class="row">
-                    {% for roommate in display_roommates %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="avatar-sm bg-light rounded-circle p-2 me-3">
-                                    <i class="fas fa-user-tag text-success"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-0">{{ roommate.full_name }}</h6>
-                                    <small class="text-muted">{{ roommate.course|default:"Resident" }}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="col-12">
-                        <div class="p-4 border border-dashed text-center rounded bg-light">
-                            <p class="text-muted mb-0">No roommates assigned to this room yet.</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="alert alert-warning">No room assigned yet.</div>
-            {% endif %}
         </div>
 
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-bullhorn text-success me-2"></i>Announcements</h5>
+        <!-- Sidebar for Announcements, Payments, and Violations -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-bullhorn me-2"></i>Announcements
                 </div>
-                <div class="card-body pt-0">
+                <div class="card-body">
                     {% if announcements %}
-                        {% for note in announcements %}
-                            <div class="mb-4 pb-2 border-bottom">
-                                <h6 class="fw-bold text-dark mb-1">{{ note.title }}</h6>
-                                <div class="small text-muted mb-1">
-                                    {# Correct field name: description #}
-                                    {% if note.content %}
-                                        {{ note.content|linebreaks }}
-                                    {% else %}
-                                        <span class="text-danger italic small">No details provided.</span>
-                                    {% endif %}
-                                </div>
-                                <small class="text-muted" style="font-size: 0.7rem;">
-                                    Posted on {{ note.date_posted|date:"M d, Y" }}
-                                </small>
+                        {% for announcement in announcements %}
+                            <div class="mb-3">
+                                <h6 class="card-subtitle mb-2 text-muted">{{ announcement.title }}</h6>
+                                <p class="card-text">{{ announcement.content|truncatewords:20 }}</p>
+                                <small class="text-muted">Posted on: {{ announcement.date_posted|date:"M d, Y" }}</small>
                             </div>
-                        {% empty %}
-                            <p class="small text-muted text-center py-3">No announcements found.</p>
+                            {% if not forloop.last %}<hr>{% endif %}
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted">No announcements available.</p>
+                        <p class="card-text">No new announcements.</p>
                     {% endif %}
                 </div>
             </div>
 
-            <a href="{% url 'rules' %}" class="card border-0 shadow-sm bg-dark text-white text-decoration-none">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3">Quick Rules <i class="fas fa-arrow-right small"></i></h5>
-                    <ul class="list-unstyled small mb-0">
-                        <li class="mb-2"><i class="fas fa-clock text-success me-2"></i> 10:00 PM Curfew</li>
-                        <li class="mb-2"><i class="fas fa-ban text-danger me-2"></i> No cooking inside rooms</li>
-                        <li class="mb-0"><i class="fas fa-bolt text-warning me-2"></i> Fans & laptops only</li>
-                    </ul>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-dollar-sign me-2"></i>Payment Status
                 </div>
-            </a>
+                <div class="card-body">
+                    <p>Your current status is: <strong>{{ payment_status }}</strong></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Violation Records
+                </div>
+                <div class="card-body">
+                    {% if user_violations %}
+                        <ul class="list-group list-group-flush">
+                            {% for violation in user_violations %}
+                                <li class="list-group-item">
+                                    <strong>{{ violation.description }}</strong><br>
+                                    <small class="text-muted">{{ violation.date_committed|date:"M d, Y" }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center">No violations on record.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

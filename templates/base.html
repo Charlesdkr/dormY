@@ -12,58 +12,147 @@
 
     <style>
         :root {
-          --navy-blue: #1b5e20;   /* dark green */
-          --soft-white: #ffffff;
-          --light-gray: #f4f7f6;
-          --accent: #4caf50;     /* light green accent */
+          --green-dark: #1b5e20;
+          --green-main: #2e7d32;
+          --green-accent: #4caf50;
+          --green-light: #a5d6a7;
+          --bg-light: #f8f9fa;
+          --shadow-color: rgba(46, 125, 50, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--green-light);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--green-accent);
         }
 
         body {
           font-family: 'Poppins', sans-serif;
-          background-color: var(--light-gray);
+          background-color: var(--bg-light);
           color: #333;
           margin: 0;
         }
 
-        /* Navbar Styling */
+        /* Gradient Navbar */
         .navbar {
-            background-color: var(--navy-blue);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-image: linear-gradient(to right, var(--green-main), var(--green-dark));
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border-bottom: 2px solid var(--green-accent);
         }
         
-        .navbar-brand {
+        .navbar-brand img {
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
+
+        .dormy-brand-text {
+            font-size: 1.6rem;
             font-weight: 700;
-            color: var(--soft-white) !important;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
             letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover .dormy-brand-text {
+            color: var(--green-light);
+            text-shadow: 0 0 10px var(--green-light);
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.8) !important;
+            color: rgba(255,255,255,0.85) !important;
             font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .nav-link:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: var(--green-accent);
+            transition: width 0.3s ease;
         }
 
         .nav-link:hover {
-            color: var(--accent) !important;
+            color: white !important;
+        }
+
+        .nav-link:hover:before {
+            width: 80%;
         }
 
         /* Content Area */
         .main-content {
-            padding: 2rem;
+            padding: 2.5rem;
         }
         
+        /* Page Title Accent */
         .page-title {
-            color: var(--navy-blue);
+            color: var(--green-dark);
             font-weight: 700;
-            margin-bottom: 2rem;
+            letter-spacing: 1px;
+            margin-bottom: 2.5rem;
+            border-left: 6px solid var(--green-accent);
+            padding-left: 1.5rem;
         }
 
-        /* Card Styling */
+        /* Card Styling & Animation */
         .dashboard-card {
           background: white;
-          border-radius: 20px;
-          box-shadow: 0 10px 25px rgba(27, 94, 32, 0.1);
-          border: 1px solid #eee;
+          border-radius: 15px;
+          border: 1px solid #e0e0e0;
+          border-top: 4px solid var(--green-accent);
+          box-shadow: 0 8px 16px var(--shadow-color);
           padding: 1.5rem;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 16px 32px var(--shadow-color);
+        }
+
+        /* "Pop-Up" Button Styling */
+        .btn-primary {
+            background-image: linear-gradient(to right, var(--green-accent), var(--green-main));
+            border: none;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Alert Styling */
+        .alert-success {
+            background-color: #e8f5e9;
+            border-left: 5px solid var(--green-accent);
+            color: var(--green-dark);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -71,7 +160,10 @@
 
     <nav class="navbar navbar-expand-lg">
       <div class="container">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">dormY</a>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
+          <img src="{% static 'images/logo.png' %}" alt="dormY Logo" style="height: 35px; margin-right: 10px;">
+          <span class="dormy-brand-text">dormY</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -86,6 +178,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'schedule' %}"><i class="fas fa-calendar-alt me-2"></i>Schedule</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'rules' %}"><i class="fas fa-book me-2"></i>Rules</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'account' %}"><i class="fas fa-user-cog me-2"></i>Account</a>

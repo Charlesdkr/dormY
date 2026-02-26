@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 import json
 from datetime import date, timedelta
 from django.utils import timezone
-from .models import CleaningSchedule, Announcement
+from .models import CleaningSchedule
+from management.models import Announcement as ManagementAnnouncement
 
 def get_next_weekday(weekday):
     """
@@ -23,8 +24,8 @@ def schedule_view(request):
     """
     all_schedules = CleaningSchedule.objects.select_related('group').prefetch_related('group__members').all()
     
-    # Fetch all announcements, ordered by the most recent
-    all_announcements = Announcement.objects.order_by('-date_posted')
+    # Fetch all announcements from the management app
+    all_announcements = ManagementAnnouncement.objects.order_by('-date_posted')
     
     context = {
         'all_schedules': all_schedules,

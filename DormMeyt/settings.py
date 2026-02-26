@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'users',
     'rooms',
     'scheduling',
+    'management',
 ]
 
 MIDDLEWARE = [
@@ -126,17 +127,31 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# Tells Django to look for static files in your templates/static folder
+# The absolute path to the directory where collectstatic will collect static files for deployment.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# A list of directories where Django will look for additional static files.
 STATICFILES_DIRS = [
-    BASE_DIR / 'templates' / 'static',
+    os.path.join(BASE_DIR, 'static'),
 ]
+
 AUTH_USER_MODEL = 'users.User'
 
 # settings.py
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Media files (user-uploaded content)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# CSRF settings
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token if needed
+CSRF_COOKIE_SAMESITE = 'Lax'  # CSRF protection for cross-site requests
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

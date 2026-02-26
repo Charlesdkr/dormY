@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 
 # Import models from other apps
+from management.models import Announcement as ManagementAnnouncement, Violation
 from scheduling.models import Announcement
 from rooms.models import Room, Occupancy
 
@@ -42,18 +43,28 @@ def register_view(request):
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
+        role = request.POST.get('role')
+
         if form.is_valid():
-            # These are the variables the form actually creates
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            
-            # Use those variables here
             user = authenticate(request, username=username, password=password)
-            
+
             if user is not None:
                 if user.is_active:
-                    login(request, user)
-                    return redirect('dashboard')
+                    # Role-based redirection
+                    if role == 'master':
+                        if user.is_staff:
+                            login(request, user)
+                            return redirect('management:management_dashboard') # New dashboard for dorm master
+                        else:
+                            messages.error(request, "You do not have permission to log in as a Dorm Master.")
+                    else: # Default to student login
+                        if user.is_staff:
+                            messages.error(request, "Staff members cannot log in as students.")
+                        else:
+                            login(request, user)
+                            return redirect('dashboard')
                 else:
                     messages.error(request, "Your account is not active.")
             else:
@@ -84,9 +95,7 @@ def dashboard_view(request):
     display_roommates = []
 
     # 1. FETCH ROOM FROM OCCUPANCY (Source of Truth)
-    # This uses the OneToOne relationship in rooms/models.py
     try:
-        # We look for the Occupancy record linked to the student
         occupancy = Occupancy.objects.get(student=current_user)
         display_room = occupancy.room
     except Occupancy.DoesNotExist:
@@ -94,17 +103,24 @@ def dashboard_view(request):
 
     # 2. FETCH ROOMMATES
     if display_room:
-        # We find everyone else whose Occupancy record links to this same room
         roommate_ids = Occupancy.objects.filter(room=display_room).exclude(student=current_user).values_list('student_id', flat=True)
         display_roommates = User.objects.filter(id__in=roommate_ids)
 
-    # 3. FETCH ANNOUNCEMENTS (from the scheduling app)
-    all_announcements = Announcement.objects.all().order_by('-date_posted')[:5]
+    # 3. FETCH ANNOUNCEMENTS (from the management app)
+    all_announcements = ManagementAnnouncement.objects.all().order_by('-date_posted')
+
+    # 4. FETCH VIOLATIONS for the current user
+    user_violations = Violation.objects.filter(student=current_user).order_by('-date_committed')
+
+    # 5. GET PAYMENT STATUS
+    payment_status = current_user.get_payment_status_display()
 
     context = {
         'display_room': display_room,
         'display_roommates': display_roommates,
         'announcements': all_announcements,
+        'user_violations': user_violations,
+        'payment_status': payment_status,
     }
     return render(request, 'dashboard.html', context)
 
@@ -118,21 +134,33 @@ def rules_view(request):
 @login_required
 def account_view(request):
     user = request.user
-    violations = user.violations.all().order_by('-date_committed')
+    violations = user.management_violations.all().order_by('-date_committed')
 
     if request.method == 'POST':
-        password_form = PasswordChangeForm(user, request.POST)
-        if password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('account')
-        else:
-            messages.error(request, 'Please correct the error below.')
-    else:
-        password_form = PasswordChangeForm(user)
+        if 'change_password' in request.POST:
+            password_form = PasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Your password was successfully updated!')
+                return redirect('account')
+            else:
+                messages.error(request, 'Please correct the password change errors below.')
+        
+        if 'update_profile' in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Your profile has been updated.')
+                return redirect('account')
+            else:
+                messages.error(request, 'Please correct the profile update errors below.')
+
+    password_form = PasswordChangeForm(user)
+    profile_form = UserProfileForm(instance=user)
     
     return render(request, 'account.html', {
         'password_form': password_form,
+        'profile_form': profile_form,
         'violations': violations
     })

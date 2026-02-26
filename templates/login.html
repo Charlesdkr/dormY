@@ -121,6 +121,13 @@
                     <form method="POST">
                         {% csrf_token %}
                         <div class="mb-3">
+                            <label for="role" class="form-label">Login as</label>
+                            <select class="form-select" name="role" id="role">
+                                <option value="student">Student Resident</option>
+                                <option value="master">Dorm Master</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Student ID / Email</label>
                             <input type="text" name="username" class="form-control" placeholder="Enter your ID" required>
                         </div>

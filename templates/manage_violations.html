@@ -1,0 +1,57 @@
+{% extends 'mdashboard.html' %}
+
+{% block title %}Manage Violations{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Manage Violations</h1>
+    <p>Here you can assign violations to students and view a history of all recorded infractions.</p>
+    <hr>
+
+    <div class="row">
+        <div class="col-md-8">
+            <h3>Violation History</h3>
+            <div class="card">
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for violation in violations %}
+                            <li class="list-group-item">
+                                <strong>{{ violation.student.get_full_name|default:violation.student.username }}</strong>
+                                <p>{{ violation.description }}</p>
+                                <small class="text-muted">Committed on {{ violation.date_committed|date:"F d, Y" }}</small>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">No violations recorded yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h3>Assign a Violation</h3>
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.student.id_for_label }}" class="form-label">Student</label>
+                            {{ form.student }}
+                            {% if form.student.errors %}
+                                <div class="text-danger small mt-1">{{ form.student.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-danger">Assign Violation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

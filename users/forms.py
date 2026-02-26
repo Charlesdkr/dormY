@@ -10,10 +10,12 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['student_id', 'full_name', 'email', 'course', 'year_level', 'contact_number', 'password']
+        fields = ['student_id', 'first_name', 'middle_name', 'last_name', 'email', 'course', 'year_level', 'contact_number', 'password']
         widgets = {
             'student_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 2024-0001'}),
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'course': forms.TextInput(attrs={'class': 'form-control'}),
             'year_level': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -24,13 +26,12 @@ class RegistrationForm(forms.ModelForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'contact_number', 'course', 'year_level']
+        # Users can only edit these specific fields
+        fields = ['profile_picture', 'email', 'contact_number']
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control mb-2'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'course': forms.TextInput(attrs={'class': 'form-control'}),
-            'year_level': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -39,7 +40,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
-        fields = ('student_id', 'full_name', 'email')
+        fields = ('student_id', 'first_name', 'middle_name', 'last_name', 'email')
 
 
 class CustomUserChangeForm(BaseUserChangeForm):

@@ -1,0 +1,453 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+          --green-dark: #1b5e20;
+          --green-main: #2e7d32;
+          --green-accent: #4caf50;
+          --green-light: #a5d6a7;
+          --bg-light: #f8f9fa;
+          --shadow-color: rgba(46, 125, 50, 0.2);
+          --card-bg: #ffffff;
+          --text-primary: #333333;
+          --text-secondary: #666666;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--green-light);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--green-accent);
+        }
+
+        body {
+          font-family: 'Poppins', sans-serif;
+          background-color: var(--bg-light);
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        /* Gradient Navbar */
+        .navbar {
+            background-image: linear-gradient(to right, var(--green-main), var(--green-dark));
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border-bottom: 2px solid var(--green-accent);
+        }
+        
+        .navbar-brand img {
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
+
+        .dormy-brand-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover .dormy-brand-text {
+            color: var(--green-light);
+            text-shadow: 0 0 10px var(--green-light);
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .nav-link:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: var(--green-accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+        }
+
+        .nav-link:hover:before {
+            width: 80%;
+        }
+
+        /* Content Area */
+        .main-content {
+            padding: 2.5rem;
+        }
+        
+        /* Page Title Accent */
+        .page-title {
+            color: var(--green-dark);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 2.5rem;
+            border-left: 6px solid var(--green-accent);
+            padding-left: 1.5rem;
+        }
+
+        /* Management Dashboard Specific Styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--green-main), var(--green-dark));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="60" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .dashboard-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Management Cards */
+        .management-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: 1px solid #e0e0e0;
+            border-top: 4px solid var(--green-accent);
+            box-shadow: 0 8px 16px var(--shadow-color);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .management-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.05), rgba(76, 175, 80, 0));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .management-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 16px 32px var(--shadow-color);
+            border-top-color: var(--green-dark);
+        }
+
+        .management-card:hover::before {
+            opacity: 1;
+        }
+
+        .management-card h5 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .management-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Management Buttons */
+        .btn-management {
+            background-image: linear-gradient(135deg, var(--green-accent), var(--green-main));
+            border: none;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .btn-management:hover {
+            color: white;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+            background-image: linear-gradient(135deg, var(--green-main), var(--green-dark));
+        }
+
+        /* Announcements Section */
+        .announcements-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 16px var(--shadow-color);
+            border: 1px solid #e0e0e0;
+        }
+
+        .announcement-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .announcement-item:hover {
+            transform: translateX(5px);
+        }
+
+        .announcement-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .announcement-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .announcement-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Announcement Form */
+        .announcement-form {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 16px var(--shadow-color);
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--green-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--green-accent);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #aaa;
+        }
+
+        /* Alert Styling */
+        .alert-success {
+            background-color: #e8f5e9;
+            border-left: 5px solid var(--green-accent);
+            color: var(--green-dark);
+            font-weight: 500;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
+          <img src="{% static 'images/logo.png' %}" alt="dormY Logo" style="height: 35px; margin-right: 10px;">
+          <span class="dormy-brand-text">dormY</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'dashboard' %}"><i class="fas fa-home me-2"></i>Dashboard</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'room_list' %}"><i class="fas fa-door-open me-2"></i>Rooms</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'schedule' %}"><i class="fas fa-calendar-alt me-2"></i>Schedule</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'rules' %}"><i class="fas fa-book me-2"></i>Rules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'account' %}"><i class="fas fa-user-cog me-2"></i>Account</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'login' %}">Login</a>
+                </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Management Dashboard Content -->
+            <div class="dashboard-header text-center">
+                <div class="container">
+                    <h1><i class="fas fa-tachometer-alt me-3"></i>Management Dashboard</h1>
+                    <p class="lead">Welcome, Dorm Master. From here you can manage tenants, rooms, and announcements.</p>
+                </div>
+            </div>
+
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4">
+                    <a href="{% url 'management:manage_violations' %}" class="text-decoration-none">
+                        <div class="management-card">
+                            <div class="text-center">
+                                <h5><i class="fas fa-exclamation-triangle text-warning"></i> Manage Violations</h5>
+                                <p>Assign and track student violations with detailed reporting and status updates.</p>
+                                <div class="btn btn-management">
+                                    <i class="fas fa-arrow-right me-2"></i>Go to Violations
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <a href="{% url 'management:manage_payments' %}" class="text-decoration-none">
+                        <div class="management-card">
+                            <div class="text-center">
+                                <h5><i class="fas fa-money-bill-wave text-info"></i> Manage Payments</h5>
+                                <p>Update student payment statuses and track financial records efficiently.</p>
+                                <div class="btn btn-management">
+                                    <i class="fas fa-arrow-right me-2"></i>Go to Payments
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            {% block management_content %}
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="announcements-section">
+                        <h3 class="page-title mb-4">
+                            <i class="fas fa-bullhorn me-2"></i>Announcements
+                        </h3>
+                        {% for announcement in announcements %}
+                            <div class="announcement-item">
+                                <h5 class="announcement-title">{{ announcement.title }}</h5>
+                                <p class="announcement-content">{{ announcement.content }}</p>
+                                <small class="announcement-date">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Posted on {{ announcement.date_posted|date:"F d, Y" }}
+                                </small>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-bell-slash text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No announcements yet.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="announcement-form">
+                        <h3 class="page-title mb-4">
+                            <i class="fas fa-plus-circle me-2"></i>Post an Announcement
+                        </h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" class="btn btn-management w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Post Announcement
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -57,10 +57,8 @@
                         <div class="alert alert-info" role="alert">
                             <h5 class="alert-heading">{{ announcement.title }}</h5>
                             <p>{{ announcement.content }}</p>
-                            {% if announcement.event_date %}
                             <hr>
-                            <p class="mb-0"><strong>Date:</strong> {{ announcement.event_date|date:"F d, Y H:i" }}</p>
-                            {% endif %}
+                            <p class="mb-0"><strong>Date:</strong> {{ announcement.date_posted|date:"F d, Y H:i" }}</p>
                         </div>
                     {% empty %}
                         <p>No announcements found.</p>

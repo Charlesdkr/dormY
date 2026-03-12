@@ -1,0 +1,225 @@
+{% extends 'basem.html' %}
+{% load static %}
+
+{% block title %}Manage Rooms{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-door-open text-primary me-2"></i>Room Management
+            </h2>
+            <p class="text-muted mb-0">
+                Oversee room assignments, manage capacity, and handle student requests.
+            </p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary shadow-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createRoomModal">
+                <i class="fas fa-plus me-2"></i>Create New Room
+            </button>
+        </div>
+    </div>
+
+    <!-- FILTER BUTTONS -->
+    <div class="d-flex justify-content-start gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-primary active" data-filter="all">All Rooms</button>
+        <button class="btn btn-sm btn-outline-success" data-filter="available">Available</button>
+        <button class="btn btn-sm btn-outline-danger" data-filter="full">Full</button>
+    </div>
+
+    <!-- ROOMS TABLE -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom p-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-bed me-2 text-success"></i>All Rooms
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="roomsTable" class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Room Number</th>
+                            <th>Capacity</th>
+                            <th>Occupancy</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        {% with room.residents.count as resident_count %}
+                        <tr data-status="{% if resident_count < room.capacity %}available{% else %}full{% endif %}" class="{% if room.status == 'maintenance' %}table-warning{% endif %}">
+                            <td class="fw-bold text-primary">
+                                {% if room.status == 'maintenance' %}<i class="fas fa-wrench me-2 text-warning"></i>{% endif %}#{{ room.room_number }}
+                            </td>
+                            <td>{{ room.capacity }} Students</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-group">
+                                        {% for resident in room.residents.all %}
+                                            {% if resident.profile_picture %}
+                                                <img src="{{ resident.profile_picture.url }}" class="avatar-img" alt="{{ resident.full_name }}" title="{{ resident.full_name }}">
+                                            {% else %}
+                                                <div class="avatar-placeholder" title="{{ resident.full_name }}"><i class="fas fa-user"></i></div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span class="ms-2 text-muted small">{{ resident_count }}/{{ room.capacity }} Occupied</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-{% if room.status == 'maintenance' %}success{% else %}warning{% endif %}-soft btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmationModal"
+                                        data-room-id="{{ room.id }}"
+                                        data-room-number="{{ room.room_number }}"
+                                        data-action="{% if room.status == 'maintenance' %}set available{% else %}set maintenance{% endif %}">
+                                    {% if room.status == 'maintenance' %}Set Available{% else %}Set Maintenance{% endif %}
+                                </button>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <i class="fas fa-door-open fa-3x opacity-25 mb-3"></i>
+                                <p class="text-muted">No rooms created yet. Click "Create New Room" to begin.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to <span id="action-text"></span> room <strong id="room-number-text"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirm-button" class="btn btn-primary">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CREATE ROOM MODAL -->
+<div class="modal fade" id="createRoomModal" tabindex="-1" aria-labelledby="createRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Room</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CUSTOM STYLES -->
+<style>
+.btn-success-soft { background:#e1fcef; color:#008a50; border:1px solid #a3e9d1; }
+.btn-danger-soft { background:#fceaea; color:#b02a37; border:1px solid #f5b9bf; }
+.btn-secondary-soft { background:#f0f2f5; color:#555; border:1px solid #ddd; }
+
+.card { border-radius:15px; }
+
+.avatar-group { display: flex; padding-left: 10px; }
+.avatar-img, .avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid white;
+    margin-left: -10px;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+.avatar-group:hover .avatar-img, .avatar-group:hover .avatar-placeholder { transform: translateY(-3px); }
+
+.btn-outline-primary.active { background-color: #4361ee; color:white; }
+</style>
+
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    const roomsTable = $('#roomsTable').DataTable({
+        pageLength: 10,
+        dom:'<"d-flex justify-content-between mb-3"f>rt<"d-flex justify-content-between mt-3"ip>',
+        language:{ search:"", searchPlaceholder:"Search rooms..." }
+    });
+
+    $('.dataTables_filter input').addClass('form-control shadow-sm').css('width','250px');
+
+    // Custom filter
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+        const activeFilter = $('[data-filter].active').data('filter');
+        if(activeFilter === 'all' || !activeFilter) return true;
+        const rowStatus = $(settings.aoData[dataIndex].nTr).data('status');
+        return rowStatus === activeFilter;
+    });
+
+    // Filter button click
+    $('[data-filter]').on('click', function(){
+        $('[data-filter]').removeClass('active');
+        $(this).addClass('active');
+        roomsTable.draw();
+    });
+
+    // Move filter buttons next to search
+    const filterButtons = $('.d-flex.justify-content-start.gap-2.mb-3');
+    $('.dataTables_filter').prepend(filterButtons);
+    filterButtons.removeClass('mb-3');
+
+    // Confirmation modal
+    var confirmationModal = document.getElementById('confirmationModal');
+    confirmationModal.addEventListener('show.bs.modal', function(event){
+        const button = event.relatedTarget;
+        const roomId = button.getAttribute('data-room-id');
+        const roomNumber = button.getAttribute('data-room-number');
+        const action = button.getAttribute('data-action');
+
+        confirmationModal.querySelector('#action-text').textContent = action;
+        confirmationModal.querySelector('#room-number-text').textContent = roomNumber;
+        confirmationModal.querySelector('#confirm-button').href = `/management/rooms/${roomId}/maintenance/`;
+    });
+
+});
+</script>
+
+{% endblock %}

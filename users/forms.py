@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm as BaseUserChangeForm
 
-from .models import User
+from .models import User, EmergencyContact
+from management.models import Request
 
 
 class RegistrationForm(forms.ModelForm):
@@ -34,6 +35,10 @@ class UserProfileForm(forms.ModelForm):
             'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        self.fields['profile_picture'].required = False
+
 
 class CustomUserCreationForm(UserCreationForm):
     """A form for creating new users in the admin, with no privileges."""
@@ -49,3 +54,23 @@ class CustomUserChangeForm(BaseUserChangeForm):
     class Meta(BaseUserChangeForm.Meta):
         model = get_user_model()
         fields = '__all__'
+
+
+class EmergencyContactForm(forms.ModelForm):
+    class Meta:
+        model = EmergencyContact
+        fields = ['contact_name', 'relationship', 'phone_number']
+        widgets = {
+            'contact_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'relationship': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Mother, Father, Guardian'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class RequestForm(forms.ModelForm):
+    class Meta:
+        model = Request
+        fields = ['request_type', 'description']
+        widgets = {
+            'request_type': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Please provide details about your request.'}),
+        }

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Announcement, Violation
+from .models import Announcement, Violation, CleaningGroup, CleaningSchedule
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -43,4 +43,46 @@ class PaymentStatusForm(forms.ModelForm):
         fields = ['payment_status']
         widgets = {
             'payment_status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+        }
+
+class CleaningGroupForm(forms.ModelForm):
+    members = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(is_staff=False).order_by('first_name', 'last_name'),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    class Meta:
+        model = CleaningGroup
+        fields = ['name', 'members']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class CleaningScheduleForm(forms.ModelForm):
+    class Meta:
+        model = CleaningSchedule
+        fields = ['group', 'day_of_week', 'task']
+        widgets = {
+            'group': forms.Select(attrs={'class': 'form-control'}),
+            'day_of_week': forms.Select(attrs={'class': 'form-control'}),
+            'task': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class DormMasterProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+
+class DormMasterProfilePictureForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['profile_picture']
+        widgets = {
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
         }

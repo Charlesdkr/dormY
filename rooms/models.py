@@ -60,3 +60,22 @@ class Occupancy(models.Model):
     
     def __str__(self):
         return f"{self.student.full_name} in {self.room.room_number}"
+
+class AssignmentRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('denied', 'Denied'),
+    ]
+
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_requests')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='assignment_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    date_requested = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'room')
+        ordering = ['-date_requested']
+
+    def __str__(self):
+        return f"Request from {self.student.full_name} for {self.room.room_number} ({self.get_status_display()})"

@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User
 from management.models import Violation
 from .forms import CustomUserCreationForm, CustomUserChangeForm
+from django.utils.html import mark_safe
 
 class ViolationInline(admin.TabularInline):
     """
@@ -46,7 +47,7 @@ class CustomUserAdmin(UserAdmin):
     mark_as_not_paid.short_description = "Mark selected as Not Paid"
 
     # --- List View ---
-    list_display = ('student_id', 'full_name', 'role', 'payment_status', 'is_active_icon')
+    list_display = ('profile_picture_thumbnail', 'student_id', 'full_name', 'role', 'payment_status', 'is_active_icon')
     list_filter = ('year_level', 'payment_status', 'is_active', 'role')
     search_fields = ('student_id', 'first_name', 'last_name')
     ordering = ('student_id',)
@@ -57,10 +58,17 @@ class CustomUserAdmin(UserAdmin):
     is_active_icon.boolean = True
     is_active_icon.short_description = 'Active'
 
+    def profile_picture_thumbnail(self, obj):
+        if obj.profile_picture and hasattr(obj.profile_picture, 'url'):
+            return mark_safe(f'<img src="{obj.profile_picture.url}" width="50" height="50" style="object-fit: cover; border-radius: 50%;" />')
+        return "No Image"
+    profile_picture_thumbnail.short_description = 'Picture'
+
 
     # --- Detail View ---
+    readonly_fields = ('last_login', 'date_joined', 'profile_picture_thumbnail')
     fieldsets = (
-        ('Identity', {'fields': ('student_id', 'first_name', 'middle_name', 'last_name')}),
+        ('Identity', {'fields': ('profile_picture_thumbnail', 'profile_picture', 'student_id', 'first_name', 'middle_name', 'last_name')}),
         ('Academic', {'fields': ('course', 'year_level')}),
         ('Contact', {'fields': ('email', 'contact_number')}),
         ('Financial', {'fields': ('payment_status',)}),

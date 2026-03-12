@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
+from django.conf import settings
 
 # --- 1. USER MANAGER ---
 class UserManager(BaseUserManager):
@@ -46,13 +47,12 @@ class User(AbstractUser):
         verbose_name="Payment Status"
     )
     
-    # FIX: Point to the Room model in the 'rooms' app
     assigned_room = models.ForeignKey(
         'rooms.Room', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        related_name='user_assigned_rooms' 
+        related_name='residents' 
     )
 
     cleaning_group = models.ForeignKey(
@@ -83,3 +83,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.student_id} - {self.full_name}"
+
+
+# --- 3. EMERGENCY CONTACT MODEL ---
+class EmergencyContact(models.Model):
+    """
+    Stores emergency contact information for a student.
+    Each user has a one-to-one relationship with an emergency contact.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='emergency_contact',
+        primary_key=True,
+    )
+    contact_name = models.CharField(max_length=255, verbose_name="Full Name")
+    relationship = models.CharField(max_length=100, verbose_name="Relationship")
+    phone_number = models.CharField(max_length=20, verbose_name="Phone Number")
+    
+    class Meta:
+        verbose_name = "Emergency Contact"
+        verbose_name_plural = "Emergency Contacts"
+
+    def __str__(self):
+        return f"Emergency Contact for {self.user.full_name}"

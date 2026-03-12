@@ -1,0 +1,281 @@
+{% extends 'basem.html' %}
+{% load static %}
+
+{% block title %}Manage Student Requests{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-tasks text-primary me-2"></i>
+                Manage Student Requests
+            </h2>
+            <p class="text-muted mb-0">
+                Review and process room assignment and general requests from students.
+            </p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light border-bottom p-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-bed me-2 text-primary"></i>
+                Room Assignment Requests
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if assignment_requests %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 ps-4">Student</th>
+                            <th>Requested Room</th>
+                            <th>Date Requested</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in assignment_requests %}
+                        <tr>
+                            <td class="py-3 ps-4">
+                                <div class="d-flex align-items-center">
+                                    {% if request.student.profile_picture %}
+                                    <img src="{{ request.student.profile_picture.url }}" class="rounded-circle me-3 avatar-img" alt="{{ request.student.full_name }}">
+                                    {% else %}
+                                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center avatar-placeholder"><i class="fas fa-user"></i></div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ request.student.full_name }}</div>
+                                        <div class="text-muted small">{{ request.student.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-primary-soft">Room {{ request.room.room_number }}</span></td>
+                            <td>{{ request.date_requested|date:"F d, Y, P" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'management:approve_request' request.id %}" class="btn btn-success-soft btn-sm me-1">Approve</a>
+                                <a href="{% url 'management:deny_request' request.id %}" class="btn btn-danger-soft btn-sm">Deny</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x opacity-25 mb-3 text-success"></i>
+                <h4 class="fw-bold">All caught up!</h4>
+                <p class="text-muted">There are no pending assignment requests.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom p-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-tools me-2 text-info"></i>
+                General Requests
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if general_requests %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 ps-4">Student</th>
+                            <th>Request Type</th>
+                            <th>Description</th>
+                            <th>Date Submitted</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in general_requests %}
+                        <tr>
+                            <td class="py-3 ps-4">
+                                <div class="d-flex align-items-center">
+                                    {% if request.student.profile_picture %}
+                                    <img src="{{ request.student.profile_picture.url }}" class="rounded-circle me-3 avatar-img" alt="{{ request.student.full_name }}">
+                                    {% else %}
+                                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center avatar-placeholder"><i class="fas fa-user"></i></div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ request.student.full_name }}</div>
+                                        <div class="text-muted small">{{ request.student.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {% if request.request_type == 'maintenance' %}bg-warning-soft{% elif request.request_type == 'stay_out' %}bg-info-soft{% else %}bg-secondary-soft{% endif %}">
+                                    {{ request.get_request_type_display }}
+                                </span>
+                            </td>
+                            <td style="max-width: 300px; white-space: normal;">{{ request.description }}</td>
+                            <td>{{ request.date_submitted|date:"F d, Y, P" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'management:approve_general_request' request.id %}" class="btn btn-success-soft btn-sm me-1">Approve</a>
+                                <a href="{% url 'management:deny_general_request' request.id %}" class="btn btn-danger-soft btn-sm">Deny</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-4x opacity-25 mb-3 text-muted"></i>
+                <h4 class="fw-bold">No General Requests</h4>
+                <p class="text-muted">There are no pending general requests from students.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+
+<style>
+
+/* Card */
+
+.card{
+border-radius:18px;
+overflow:hidden;
+transition:.25s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+box-shadow:0 12px 30px rgba(0,0,0,0.08);
+}
+
+.card-header{
+background:#f8fafc !important;
+}
+
+
+/* Table */
+
+.table{
+border-collapse:separate;
+border-spacing:0 8px;
+}
+
+.table thead th{
+font-size:.75rem;
+letter-spacing:.08em;
+text-transform:uppercase;
+font-weight:700;
+color:#6b7280;
+}
+
+.table tbody tr{
+background:white;
+border-radius:10px;
+transition:.2s;
+}
+
+.table tbody tr:hover{
+background:#f9fafb;
+transform:scale(1.01);
+}
+
+.table td{
+vertical-align:middle;
+border-top:none;
+}
+
+
+/* Avatar */
+
+.avatar-img{
+width:40px;
+height:40px;
+object-fit:cover;
+border:2px solid #f1f5f9;
+}
+
+.avatar-placeholder{
+width:40px;
+height:40px;
+background:#6c757d;
+color:white;
+}
+
+
+/* Badges */
+
+.badge{
+font-size:.75rem;
+padding:.45em .7em;
+border-radius:30px;
+}
+
+.bg-primary-soft {
+    background: #e8edff;
+    color: #3f51b5;
+}
+
+.bg-info-soft {
+    background: #e7f6f8;
+    color: #0d6efd;
+}
+
+.bg-warning-soft {
+    background: #fff8e1;
+    color: #f59e0b;
+}
+
+.bg-secondary-soft {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+
+/* Buttons */
+
+.btn-success-soft{
+background:#eaf6ec;
+color:#198754;
+border:1px solid #c3e6cb;
+border-radius:20px;
+font-size:.8rem;
+padding:4px 12px;
+transition:.2s;
+}
+
+.btn-success-soft:hover{
+background:#198754;
+color:white;
+}
+
+.btn-danger-soft{
+background:#fdeaea;
+color:#b02a37;
+border:1px solid #f5b9bf;
+border-radius:20px;
+font-size:.8rem;
+padding:4px 12px;
+transition:.2s;
+}
+
+.btn-danger-soft:hover{
+background:#b02a37;
+color:white;
+}
+
+
+/* Empty state */
+
+.opacity-25{
+opacity:.25;
+}
+
+</style>
+
+{% endblock %}

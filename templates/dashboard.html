@@ -4,100 +4,271 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-md-8">
-            <!-- Welcome Message -->
-            <div class="card mb-4">
-                <div class="card-body d-flex align-items-center">
-                    <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
-                         class="rounded-circle me-3" 
-                         alt="Profile Picture" 
-                         width="60" 
-                         height="60"
-                         style="object-fit: cover;">
-                    <div>
-                        <h2 class="card-title mb-0">Welcome, {{ user.first_name }}!</h2>
-                        {% if display_room %}
-                            <p class="card-text text-muted">You are assigned to <strong>Room {{ display_room.room_number }}</strong>.</p>
-                        {% else %}
-                            <p class="card-text text-muted">You are not currently assigned to a room.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+<div class="container mt-4">
 
-            <!-- Roommates -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-users me-2"></i>Your Roommates
-                </div>
-                <div class="card-body">
-                    {% if display_roommates %}
-                        <ul class="list-group list-group-flush">
-                            {% for roommate in display_roommates %}
-                                <li class="list-group-item">{{ roommate.first_name }} {{ roommate.last_name }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="card-text">You have no roommates at the moment.</p>
-                    {% endif %}
-                </div>
-            </div>
+<div class="row">
+
+<!-- MAIN CONTENT -->
+<div class="col-md-8">
+
+<!-- Welcome Card -->
+<div class="dashboard-card mb-4">
+<div class="d-flex align-items-center">
+
+{% if user.profile_picture %}
+<img src="{{ user.profile_picture.url }}"
+class="rounded-circle me-3 shadow-sm"
+alt="Profile Picture"
+width="70"
+height="70"
+style="object-fit:cover;border:3px solid #e8f5e9;">
+{% else %}
+<div class="rounded-circle me-3 d-flex align-items-center justify-content-center bg-secondary text-white"
+style="width:70px;height:70px;">
+<i class="fas fa-user fa-lg"></i>
+</div>
+{% endif %}
+
+<div>
+<h3 class="fw-bold mb-1">Welcome, {{ user.first_name }}!</h3>
+
+{% if display_room %}
+<p class="text-muted mb-0">
+You are assigned to <strong>Room {{ display_room.room_number }}</strong>.
+</p>
+{% else %}
+<p class="text-muted mb-0">
+You are not currently assigned to a room.
+</p>
+{% endif %}
+</div>
+
+</div>
+</div>
+
+
+<!-- Roommates -->
+<div class="dashboard-card mb-4">
+
+<h5 class="fw-bold mb-3">
+<i class="fas fa-users me-2 text-success"></i>Your Roommates
+</h5>
+
+{% if display_roommates %}
+
+<ul class="list-group list-group-flush">
+
+{% for roommate in display_roommates %}
+
+<li class="list-group-item d-flex align-items-center">
+
+{% if roommate.profile_picture %}
+<img src="{{ roommate.profile_picture.url }}"
+class="rounded-circle me-3"
+width="45"
+height="45"
+style="object-fit:cover;">
+{% else %}
+<div class="rounded-circle me-3 d-flex align-items-center justify-content-center bg-secondary text-white"
+style="width:45px;height:45px;">
+<i class="fas fa-user"></i>
+</div>
+{% endif %}
+
+<div class="d-flex flex-column">
+
+<span class="fw-medium">{{ roommate.full_name }}</span>
+
+<small class="text-muted">
+
+Status:
+
+<span class="badge
+{% if roommate.payment_status == 'paid' %}bg-success-soft
+{% elif roommate.payment_status == 'pending' %}bg-warning-soft
+{% else %}bg-danger-soft{% endif %}">
+
+{{ roommate.get_payment_status_display }}
+
+</span>
+
+</small>
+
+</div>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p class="text-muted mb-0">You have no roommates at the moment.</p>
+
+{% endif %}
+
+</div>
+
+<!-- My Requests -->
+<div class="dashboard-card mb-4">
+    <h5 class="fw-bold mb-3">
+        <i class="fas fa-clipboard-list me-2 text-success"></i>My Requests
+    </h5>
+
+    <!-- New Request Form -->
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        {{ request_form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </form>
+
+    <!-- Request History -->
+    <h6 class="fw-bold mb-3">Request History</h6>
+    {% if user_requests %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Date Submitted</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in user_requests %}
+                        <tr>
+                            <td>{{ req.get_request_type_display }}</td>
+                            <td>{{ req.description }}</td>
+                            <td>{{ req.date_submitted|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if req.status == 'approved' %}bg-success-soft
+                                    {% elif req.status == 'pending' %}bg-warning-soft
+                                    {% else %}bg-danger-soft{% endif %}">
+                                    {{ req.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    {% else %}
+        <p class="text-muted mb-0">You have not submitted any requests.</p>
+    {% endif %}
+</div>
 
-        <!-- Sidebar for Announcements, Payments, and Violations -->
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-bullhorn me-2"></i>Announcements
-                </div>
-                <div class="card-body">
-                    {% if announcements %}
-                        {% for announcement in announcements %}
-                            <div class="mb-3">
-                                <h6 class="card-subtitle mb-2 text-muted">{{ announcement.title }}</h6>
-                                <p class="card-text">{{ announcement.content|truncatewords:20 }}</p>
-                                <small class="text-muted">Posted on: {{ announcement.date_posted|date:"M d, Y" }}</small>
-                            </div>
-                            {% if not forloop.last %}<hr>{% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <p class="card-text">No new announcements.</p>
-                    {% endif %}
-                </div>
-            </div>
 
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-dollar-sign me-2"></i>Payment Status
-                </div>
-                <div class="card-body">
-                    <p>Your current status is: <strong>{{ payment_status }}</strong></p>
-                </div>
-            </div>
+<!-- Announcements -->
+<div class="dashboard-card mb-4">
 
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Violation Records
-                </div>
-                <div class="card-body">
-                    {% if user_violations %}
-                        <ul class="list-group list-group-flush">
-                            {% for violation in user_violations %}
-                                <li class="list-group-item">
-                                    <strong>{{ violation.description }}</strong><br>
-                                    <small class="text-muted">{{ violation.date_committed|date:"M d, Y" }}</small>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-center">No violations on record.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+<h5 class="fw-bold mb-3">
+<i class="fas fa-bullhorn me-2 text-success"></i>Announcements
+</h5>
+
+{% if announcements %}
+
+{% for announcement in announcements %}
+
+<div class="mb-3">
+
+<h6 class="fw-bold">{{ announcement.title }}</h6>
+
+<p class="text-muted small">
+{{ announcement.content|truncatewords:20 }}
+</p>
+
+<small class="text-muted">
+<i class="fas fa-calendar me-1"></i>
+{{ announcement.date_posted|date:"M d, Y" }}
+</small>
+
+</div>
+
+{% if not forloop.last %}<hr>{% endif %}
+
+{% endfor %}
+
+{% else %}
+
+<p class="text-muted mb-0">No new announcements.</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+<!-- SIDEBAR -->
+<div class="col-md-4">
+
+
+
+<!-- Payment Status -->
+<div class="dashboard-card mb-4 text-center">
+
+<h5 class="fw-bold mb-3">
+<i class="fas fa-dollar-sign me-2 text-success"></i>Payment Status
+</h5>
+
+<p class="mb-2 text-muted">Your current status is:</p>
+
+<span class="badge fs-6 px-3 py-2
+{% if user.payment_status == 'paid' %}bg-success-soft
+{% elif user.payment_status == 'pending' %}bg-warning-soft
+{% else %}bg-danger-soft{% endif %}">
+
+{{ payment_status }}
+
+</span>
+
+</div>
+
+
+<!-- Violations -->
+<div class="dashboard-card">
+
+<h5 class="fw-bold mb-3">
+<i class="fas fa-exclamation-triangle me-2 text-danger"></i>Violation Records
+</h5>
+
+{% if user_violations %}
+
+<ul class="list-group list-group-flush">
+
+{% for violation in user_violations %}
+
+<li class="list-group-item">
+
+<strong>{{ violation.description }}</strong><br>
+
+<small class="text-muted">
+<i class="fas fa-calendar me-1"></i>
+{{ violation.date_committed|date:"M d, Y" }}
+</small>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p class="text-center text-muted mb-0">
+No violations on record.
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
 </div>
 {% endblock %}

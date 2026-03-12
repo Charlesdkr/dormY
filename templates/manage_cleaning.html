@@ -1,0 +1,211 @@
+{% extends 'basem.html' %}
+{% load static %}
+{% load cleaning_tags %}
+
+{% block title %}Manage Cleaning Schedules | dormY{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Cleaning Management</h1>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGroupModal">
+                <i class="fas fa-plus me-2"></i>New Group
+            </button>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+                <i class="fas fa-calendar-plus me-2"></i>New Schedule
+            </button>
+        </div>
+    </div>
+
+    <!-- Weekly Schedule View -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Weekly Cleaning Schedule</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for day, _ in days_of_week %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">{{ day }}</h6>
+                        </div>
+                        <div class="card-body">
+                            {% for schedule in schedules_by_day|get_item:day %}
+                                <div class="schedule-item mb-3">
+                                    <p class="fw-bold mb-1">{{ schedule.group.name }}</p>
+                                    <p class="text-muted small">{{ schedule.task }}</p>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="schedule_id" value="{{ schedule.id }}">
+                                        <button type="submit" name="delete_schedule" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="return confirm('Are you sure?')">&times;</button>
+                                    </form>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted fst-italic">No tasks scheduled.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Cleaning Groups -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">All Cleaning Groups</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Members</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                        <tr>
+                            <td class="align-middle">{{ group.name }}</td>
+                            <td class="align-middle">
+                                {% for member in group.members.all %}
+                                    <span class="badge bg-secondary-soft">{{ member.full_name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">No members</span>
+                                {% endfor %}
+                            </td>
+                            <td class="align-middle">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editGroupModal-{{ group.id }}">Edit</button>
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="group_id" value="{{ group.id }}">
+                                    <button type="submit" name="delete_group" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Group Modal -->
+<div class="modal fade" id="addGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Cleaning Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">Name</label>
+                        {{ group_form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Members</label>
+                        <div class="checkbox-list-container">
+                            {{ group_form.members }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" name="manage_group" class="btn btn-primary">Save Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div class="modal fade" id="addScheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ schedule_form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" name="manage_schedule" class="btn btn-success">Save Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Group Modals -->
+{% for group in groups %}
+<div class="modal fade" id="editGroupModal-{{ group.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="group_id" value="{{ group.id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Group: {{ group.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_name_{{ group.id }}" class="form-label">Name</label>
+                        <input type="text" name="name" value="{{ group.name }}" class="form-control" id="id_name_{{ group.id }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Members</label>
+                        <div class="checkbox-list-container">
+                            {% for student in all_students %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="members" value="{{ student.id }}" id="id_edit_members_{{ group.id }}_{{ student.id }}" {% if student in group.members.all %}checked{% endif %}>
+                                <label class="form-check-label" for="id_edit_members_{{ group.id }}_{{ student.id }}">
+                                    {{ student.full_name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" name="manage_group" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+.bg-secondary-soft {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+.checkbox-list-container {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+.form-check {
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

@@ -5,83 +5,254 @@
 
 {% block content %}
 <div class="container py-5">
-    <h2 class="page-title">My Account</h2>
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="dashboard-card text-center mb-4">
-                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" alt="Profile Picture" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                <h5 class="fw-bold">{{ user.full_name }}</h5>
-                <p class="text-muted">{{ user.student_id }}</p>
-            </div>
 
-            <div class="dashboard-card mb-4">
-                <h5 class="card-title fw-bold mb-4"><i class="fas fa-exclamation-triangle me-2"></i>Violation Records</h5>
-                {% if violations %}
-                    <ul class="list-group list-group-flush">
-                        {% for violation in violations %}
-                            <li class="list-group-item px-0">
-                                <strong>{{ violation.description }}</strong><br>
-                                <small class="text-muted">Committed on: {{ violation.date_committed|date:"M d, Y" }}</small>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>You have no violation records. Keep up the good work!</p>
-                {% endif %}
-            </div>
-        </div>
-        <div class="col-lg-8">
-            <div class="dashboard-card mb-4">
-                <h5 class="card-title fw-bold mb-4"><i class="fas fa-user-shield me-2"></i>Your Permanent Information</h5>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <p class="mb-0"><strong>Student ID:</strong></p>
-                        <p class="text-muted">{{ user.student_id }}</p>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <p class="mb-0"><strong>Full Name:</strong></p>
-                        <p class="text-muted">{{ user.full_name }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-0"><strong>Course:</strong></p>
-                        <p class="text-muted">{{ user.course|default:'N/A' }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-0"><strong>Year Level:</strong></p>
-                        <p class="text-muted">{{ user.year_level|default:'N/A' }}</p>
-                    </div>
-                </div>
-            </div>
+<style>
+.page-title{
+    font-weight:700;
+    margin-bottom:30px;
+}
 
-            <div class="dashboard-card mb-4">
-                <h5 class="card-title fw-bold mb-4"><i class="fas fa-user-edit me-2"></i>Update Your Information</h5>
-                <form method="post" enctype="multipart/form-data" action="{% url 'account' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_profile_picture" class="form-label"><strong>Profile Picture</strong></label>
-                        {{ profile_form.profile_picture }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_email" class="form-label"><strong>Email Address</strong></label>
-                        {{ profile_form.email }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_contact_number" class="form-label"><strong>Contact Number</strong></label>
-                        {{ profile_form.contact_number }}
-                    </div>
-                    <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
-                </form>
-            </div>
+.dashboard-card{
+    background:#ffffff;
+    border-radius:14px;
+    padding:25px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    transition:0.3s;
+}
 
-            <div class="dashboard-card">
-                <h5 class="card-title fw-bold mb-4"><i class="fas fa-key me-2"></i>Change Password</h5>
-                <form method="post" action="{% url 'account' %}">
-                    {% csrf_token %}
-                    {{ password_form.as_p }}
-                    <button type="submit" name="change_password" class="btn btn-primary">Change Password</button>
-                </form>
-            </div>
-        </div>
-    </div>
+.dashboard-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.12);
+}
+
+.profile-img{
+    border:4px solid #f1f1f1;
+}
+
+.card-title{
+    border-bottom:1px solid #eee;
+    padding-bottom:10px;
+}
+
+.list-group-item{
+    border:none;
+    border-bottom:1px solid #f1f1f1;
+}
+
+.list-group-item:last-child{
+    border-bottom:none;
+}
+
+.btn-primary{
+    border-radius:8px;
+    padding:8px 18px;
+}
+
+form input, form select{
+    border-radius:8px !important;
+}
+</style>
+
+<h2 class="page-title">My Account</h2>
+
+<div class="row">
+
+<div class="col-lg-4">
+
+<div class="dashboard-card text-center mb-4">
+
+<img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
+alt="Profile Picture"
+class="img-fluid rounded-circle mb-3 profile-img"
+style="width:150px;height:150px;object-fit:cover;">
+
+<h5 class="fw-bold mb-1">{{ user.full_name }}</h5>
+<p class="text-muted">{{ user.student_id }}</p>
+
 </div>
+
+
+<div class="dashboard-card mb-4">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-users me-2 text-primary"></i>My Cleaning Group
+</h5>
+
+{% if cleaning_group %}
+<p><strong>Group:</strong> {{ cleaning_group.name }}</p>
+
+<p class="mb-1"><strong>Members:</strong></p>
+
+<ul class="list-group list-group-flush">
+
+{% for member in cleaning_group.members.all %}
+<li class="list-group-item px-0">
+<i class="fas fa-user me-2 text-secondary"></i>
+{{ member.first_name }} {{ member.last_name }}
+</li>
+{% empty %}
+<li class="list-group-item px-0">No members in this group.</li>
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p class="text-muted">You are not currently assigned to a cleaning group.</p>
+
+{% endif %}
+
+</div>
+
+
+
+<div class="dashboard-card mb-4">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-exclamation-triangle me-2 text-danger"></i>Violation Records
+</h5>
+
+{% if violations %}
+
+<ul class="list-group list-group-flush">
+
+{% for violation in violations %}
+<li class="list-group-item px-0">
+
+<strong>{{ violation.description }}</strong><br>
+
+<small class="text-muted">
+<i class="fas fa-calendar me-1"></i>
+Committed on: {{ violation.date_committed|date:"M d, Y" }}
+</small>
+
+</li>
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p class="text-muted">You have no violation records. Keep up the good work!</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+
+<div class="col-lg-8">
+
+<div class="dashboard-card mb-4">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-user-shield me-2 text-success"></i>Your Permanent Information
+</h5>
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+<p class="mb-0"><strong>Student ID:</strong></p>
+<p class="text-muted">{{ user.student_id }}</p>
+</div>
+
+<div class="col-md-6 mb-3">
+<p class="mb-0"><strong>Full Name:</strong></p>
+<p class="text-muted">{{ user.full_name }}</p>
+</div>
+
+<div class="col-md-6">
+<p class="mb-0"><strong>Course:</strong></p>
+<p class="text-muted">{{ user.course|default:'N/A' }}</p>
+</div>
+
+<div class="col-md-6">
+<p class="mb-0"><strong>Year Level:</strong></p>
+<p class="text-muted">{{ user.year_level|default:'N/A' }}</p>
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="dashboard-card mb-4">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-user-edit me-2 text-primary"></i>Update Your Information
+</h5>
+
+<form method="post" enctype="multipart/form-data" action="{% url 'users:account' %}">
+{% csrf_token %}
+
+<div class="mb-3">
+<label for="id_profile_picture" class="form-label"><strong>Profile Picture</strong></label>
+{{ profile_form.profile_picture }}
+</div>
+
+<div class="mb-3">
+<label for="id_email" class="form-label"><strong>Email Address</strong></label>
+{{ profile_form.email }}
+</div>
+
+<div class="mb-3">
+<label for="id_contact_number" class="form-label"><strong>Contact Number</strong></label>
+{{ profile_form.contact_number }}
+</div>
+
+<button type="submit" name="update_profile" class="btn btn-primary">
+    <i class="fas fa-save me-1"></i> Update Profile
+</button>
+
+</form>
+
+</div>
+
+
+<div class="dashboard-card mb-4">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-address-book me-2 text-info"></i>Emergency Contact Information
+</h5>
+
+<form method="post" action="{% url 'users:account' %}">
+{% csrf_token %}
+{{ emergency_contact_form.as_p }}
+
+<button type="submit" name="update_emergency_contact" class="btn btn-primary">
+<i class="fas fa-save me-1"></i> Save Contact
+</button>
+
+</form>
+
+</div>
+
+
+
+<div class="dashboard-card">
+
+<h5 class="card-title fw-bold mb-4">
+<i class="fas fa-key me-2 text-warning"></i>Change Password
+</h5>
+
+<form method="post" action="{% url 'users:account' %}">
+{% csrf_token %}
+{{ password_form.as_p }}
+
+<button type="submit" name="change_password" class="btn btn-primary">
+<i class="fas fa-lock me-1"></i> Change Password
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
 {% endblock %}

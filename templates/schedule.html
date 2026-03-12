@@ -4,72 +4,93 @@
 {% block title %}Schedule | dormY{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-5">
-    <h2 class="page-title">Cleaning Schedule & Announcements</h2>
-    
+<div class="container mt-4">
+    <h1 class="h3 mb-4 text-gray-800">Cleaning Schedule & Announcements</h1>
+
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-4 shadow-sm">
+
+        <!-- Cleaning Schedule -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="my-0 fw-normal"><i class="fas fa-table me-2"></i>Weekly Cleaning Schedule</h5>
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>Weekly Cleaning Schedule
+                    </h6>
                 </div>
+
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
+                        <table class="table table-bordered">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 20%;">Day</th>
-                                    <th style="width: 20%;">Group</th>
-                                    <th>Members</th>
+                                    <th style="width:15%">Day</th>
+                                    <th style="width:20%">Group</th>
+                                    <th>Task</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                {% for schedule in all_schedules %}
+                            {% if total_schedules %}
+                                {% for day_name, schedules_for_day in schedules_by_day.items %}
+                                    {% for schedule in schedules_for_day %}
+                                    <tr>
+                                        {% if forloop.first %}
+                                        <td rowspan="{{ schedules_for_day|length }}" class="align-middle fw-bold">
+                                            {{ day_name }}
+                                        </td>
+                                        {% endif %}
+
+                                        <td>{{ schedule.group.name }}</td>
+                                        <td>{{ schedule.task }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            {% else %}
                                 <tr>
-                                    <td>{{ schedule.get_day_of_week_display }}</td>
-                                    <td>{{ schedule.group.name }}</td>
-                                    <td>
-                                        {% for member in schedule.group.members.all %}
-                                            {{ member.full_name }}{% if not forloop.last %}, {% endif %}
-                                        {% empty %}
-                                            <span class="text-muted">No members assigned.</span>
-                                        {% endfor %}
+                                    <td colspan="3" class="text-center text-muted fst-italic py-4">
+                                        No cleaning schedules have been set for the week.
                                     </td>
                                 </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">No cleaning schedules found.</td>
-                                </tr>
-                                {% endfor %}
+                            {% endif %}
                             </tbody>
+
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="my-0 fw-normal"><i class="fas fa-bullhorn me-2"></i>UPCOMING</h5>
+
+        <!-- Announcements -->
+        <div class="col-md-4">
+            <h5 class="text-uppercase text-muted fw-bold mb-3">
+                <i class="fas fa-bullhorn me-2"></i>Upcoming
+            </h5>
+
+            {% if announcements %}
+                {% for announcement in announcements %}
+                <div class="card shadow-sm mb-3 announcement-card">
+                    <div class="card-body">
+                        <h6 class="fw-bold">{{ announcement.title }}</h6>
+                        <p class="small">{{ announcement.content }}</p>
+                        <p class="text-muted small">
+                            {% if announcement.event_date %}
+                                <strong>Event on:</strong> {{ announcement.event_date|date:"F d, Y, P" }}<br>
+                            {% endif %}
+                            <small>Posted: {{ announcement.date_posted|date:"F d, Y, P" }}</small>
+                        </p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% for announcement in all_announcements %}
-                        <div class="alert alert-info" role="alert">
-                            <h5 class="alert-heading">{{ announcement.title }}</h5>
-                            <p>{{ announcement.content }}</p>
-                            <hr>
-                            <p class="mb-0"><strong>Date:</strong> {{ announcement.date_posted|date:"F d, Y H:i" }}</p>
-                        </div>
-                    {% empty %}
-                        <p>No announcements found.</p>
-                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-body text-center text-muted fst-italic">
+                        No upcoming announcements.
+                    </div>
                 </div>
-            </div>
+            {% endif %}
+
         </div>
+
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-{# No extra scripts needed for this simplified page #}
 {% endblock %}

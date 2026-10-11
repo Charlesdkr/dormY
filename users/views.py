@@ -76,7 +76,7 @@ def login_view(request):
             messages.error(request, "Invalid credentials or account not yet active.")
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'login.html', {'form': form, 'request': request})
 
 # --- 3. LOGOUT VIEW ---
 def logout_view(request):

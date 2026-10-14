@@ -17,21 +17,26 @@ class Room(models.Model):
     floor = models.IntegerField(choices=FLOOR_CHOICES, default=1)
     capacity = models.IntegerField(default=4)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
+    photo = models.ImageField(upload_to='room_photos/', null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Room {self.room_number} - {self.get_floor_display()}"
 
     @property
     def is_full(self):
-        return self.room_occupants.count() >= self.capacity
+        if self.pk:
+            return self.room_occupants.count() >= self.capacity
+        return False
 
     def save(self, *args, **kwargs):
         # Automatically update status based on occupancy, but respect 'maintenance'
-        if self.status != 'maintenance':
-            if self.is_full:
-                self.status = 'full'
-            else:
-                self.status = 'available'
+        if self.pk:
+            if self.status != 'maintenance':
+                if self.is_full:
+                    self.status = 'full'
+                else:
+                    self.status = 'available'
         super().save(*args, **kwargs)
 
     def validate_assignment(self, user):

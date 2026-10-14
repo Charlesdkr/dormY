@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import RegistrationForm, UserProfileForm, EmergencyContactForm, RequestForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.http import url_has_allowed_host_and_scheme
 
 # Import models from other apps
 from management.models import Announcement as ManagementAnnouncement, Violation, CleaningSchedule
@@ -34,6 +35,12 @@ def register_view(request):
             user.set_password(form.cleaned_data['password'])
             user.is_active = False  # Admin approval required
             user.save()
+            room = form.cleaned_data.get('room')
+            if room:
+                from rooms.models import Occupancy
+                Occupancy.objects.create(student=user, room=room)
+                user.assigned_room = room
+                user.save()
             messages.success(request, "Registration successful! Please wait for admin approval.")
             return redirect('users:login')
         else:
@@ -44,10 +51,9 @@ def register_view(request):
 
 # --- 2. LOGIN VIEW ---
 def login_view(request):
+    next_url = request.POST.get('next') or request.GET.get('next')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
-        role = request.POST.get('role')
-
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -55,19 +61,17 @@ def login_view(request):
 
             if user is not None:
                 if user.is_active:
-                    # Role-based redirection
-                    if role == 'master':
-                        if user.is_staff:
-                            login(request, user)
-                            return redirect('management:management_dashboard') # New dashboard for dorm master
-                        else:
-                            messages.error(request, "You do not have permission to log in as a Dorm Master.")
-                    else: # Default to student login
-                        if user.is_staff:
-                            messages.error(request, "Staff members cannot log in as students.")
-                        else:
-                            login(request, user)
-                            return redirect('users:dashboard')
+                    login(request, user)
+                    if user.is_staff:
+                        return redirect('management:management_dashboard')
+                    elif next_url and url_has_allowed_host_and_scheme(
+                        next_url,
+                        allowed_hosts={request.get_host()},
+                        require_https=request.is_secure(),
+                    ):
+                        return redirect(next_url)
+                    else:
+                        return redirect('users:dashboard')
                 else:
                     messages.error(request, "Your account is not active.")
             else:
@@ -76,7 +80,7 @@ def login_view(request):
             messages.error(request, "Invalid credentials or account not yet active.")
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form, 'request': request})
+    return render(request, 'login.html', {'form': form, 'request': request, 'next': next_url})
 
 # --- 3. LOGOUT VIEW ---
 def logout_view(request):

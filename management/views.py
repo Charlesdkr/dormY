@@ -115,7 +115,7 @@ def manage_payments_view(request):
 @user_passes_test(is_staff)
 def manage_rooms_view(request):
     if request.method == 'POST':
-        form = RoomForm(request.POST)
+        form = RoomForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, 'Room has been created successfully.')
@@ -129,6 +129,37 @@ def manage_rooms_view(request):
         'rooms': rooms,
     }
     return render(request, 'manage_rooms.html', context)
+
+
+@login_required
+@user_passes_test(is_staff)
+def edit_room_view(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    if request.method == 'POST':
+        form = RoomForm(request.POST, request.FILES, instance=room)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Room {room.room_number} has been updated successfully.')
+            return redirect('management:edit_room', room_id=room.id)
+    else:
+        form = RoomForm(instance=room)
+    context = {
+        'form': form,
+        'room': room,
+    }
+    return render(request, 'edit_room.html', context)
+
+
+@login_required
+@user_passes_test(is_staff)
+def delete_room_photo_view(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    if room.photo:
+        room.photo.delete(save=False)
+    room.photo = None
+    room.save()
+    messages.success(request, f'Photo for Room {room.room_number} has been deleted.')
+    return redirect('management:edit_room', room_id=room.id)
 
 @login_required
 @user_passes_test(is_staff)

@@ -4,25 +4,23 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import AssignmentRequest, Occupancy, Room
 
-@login_required
 def room_list_view(request):
     """
     Fetches rooms and determines if the user can make an assignment request.
-
-    This view fetches all rooms for the directory and checks if the logged-in
-    student is already in a room or has a pending request to determine if they
-    are eligible to make a new room assignment request.
+    Made public for guests to view available rooms.
     """
     rooms = Room.objects.prefetch_related('residents').all().order_by('room_number')
 
-    # Find if the user has a pending request and for which room.
-    pending_request = AssignmentRequest.objects.filter(student=request.user, status='pending').first()
-    can_make_request = not pending_request
-
-    # Get the room the user is currently in, if any.
+    # Only compute request-related info if user is authenticated
+    pending_request = None
+    can_make_request = False
     current_user_room = None
-    if hasattr(request.user, 'room_assignment') and request.user.room_assignment:
-        current_user_room = request.user.room_assignment.room
+
+    if request.user.is_authenticated:
+        pending_request = AssignmentRequest.objects.filter(student=request.user, status='pending').first()
+        can_make_request = not pending_request
+        if hasattr(request.user, 'room_assignment') and request.user.room_assignment:
+            current_user_room = request.user.room_assignment.room
 
     context = {
         'rooms': rooms,
@@ -31,6 +29,22 @@ def room_list_view(request):
         'current_user_room': current_user_room,
     }
     return render(request, 'rooms.html', context)
+
+
+def room_detail_view(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    context = {
+        'room': room,
+    }
+    return render(request, 'room_detail.html', context)
+
+
+def available_rooms_view(request):
+    rooms = Room.objects.prefetch_related('residents').filter(status='available').order_by('room_number')
+    context = {
+        'rooms': rooms,
+    }
+    return render(request, 'available_rooms.html', context)
 
 
 @login_required

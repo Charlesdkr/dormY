@@ -142,6 +142,7 @@ STATICFILES_DIRS = [
 AUTH_USER_MODEL = 'users.User'
 
 # settings.py
+LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 

@@ -4,10 +4,16 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm as BaseUs
 
 from .models import User, EmergencyContact
 from management.models import Request
+from rooms.models import Room
 
 
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.filter(status='available'),
+        empty_label='Select a room',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = User
@@ -22,6 +28,11 @@ class RegistrationForm(forms.ModelForm):
             'year_level': forms.NumberInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter to rooms that actually have space
+        self.fields['room'].queryset = Room.objects.filter(status='available').order_by('room_number')
 
 
 class UserProfileForm(forms.ModelForm):
